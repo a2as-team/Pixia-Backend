@@ -1,0 +1,1074 @@
+manifest:
+  version: "0.1.3"
+  schema: https://a2as.org/cert/schema
+  subject:
+    name: tom-dlhy/pixia-backend
+    source: https://github.com/tom-dlhy/pixia-backend
+    branch: main
+    commit: "3b4ddcdb"
+    scope: [src/agents/root_agent/__init__.py, src/agents/root_agent/orchestrateur.py, src/agents/sub_agents/__init__.py,
+      src/agents/sub_agents/copilote.py, src/agents/sub_agents/cours_agents.py, src/agents/sub_agents/deepcourse_agents.py,
+      src/agents/sub_agents/exercise_agents.py, src/app/api/chat.py, src/config.py, src/prompts/__init__.py, src/tools/copilote_tools/__init__.py,
+      src/tools/cours_tools/__init__.py, src/tools/deepcourse_tools/__init__.py, src/tools/deepcourse_tools/generate_deep_course_tool.py,
+      src/tools/deepcourse_tools/generate_new_chapter.py, src/tools/exercises_tools/__init__.py]
+  issued:
+    by: A2AS.org
+    at: '2026-02-11T16:46:40Z'
+    url: https://a2as.org/certified/agents/tom-dlhy/pixia-backend
+  signatures:
+    digest: sha256:gRrcEGPke8enPBLDtfq9Z4_mbSyWq7--_a3OWgaHQMo
+    key: ed25519:IMQxJeYV9xz1FctqrgXS1Z0OAh1riCQBE2Zy9cmgyyY
+    sig: ed25519:AiqD6fhuePsItWuDCmOYbbVLzfmndJQGAbo0s3i1LlqtJeknV_FeeQ_1f4WavJA4rcypF6VXfyQjfCNArbg8BQ
+
+agents:
+  copilote_cours_agent:
+    type: instance
+    models: [gemini_settings.GEMINI_MODEL_2_5_FLASH]
+    tools: [fetch_context_tool, MCPToolset]
+    mcp: [MCPToolset]
+    params:
+      name: CopiloteCoursAgent
+      description: Agent spécialisé dans l'assistance à un cours pour l'utilisateur.
+      instruction: [Tu es un agent copilote conçu pour assister l’utilisateur dans un cours en cours de réalisation au sein
+          d’une plateforme de cours interactive., 'Contexte :', '- L''utilisateur est entrain de suivre un cours avec plusieurs
+          parties.', '- Ton rôle est d’assister sur le cours en cours, si l''utilisateur demande un EXERCICE, UN AUTRE COURS
+          ou UN COURS APPROFONDI, appelle ton root agent.', '- Tu peux être invoqué uniquement à l’intérieur d’un chat de
+          cours.', 'Objectif :', Aider l’utilisateur à progresser et comprendre pendant un cours selon son besoin., 'Tu dois
+          être réactif, clair et pédagogique.', 'Tu peux :', '- Expliquer un concept lié au cours.', '- Tu disposes également
+          d''une grande base de connaissances qui te permet de chercher dans toute la doc microsoft via les tools que tu as
+          à ta disposition.', 'SI c''est pertinent, utilise les tools MCP pour répondre aux questions de l''utilisateur uniquement
+          si ça concerne les technos ou ce qu''il peut y avoir dans la doc microsoft.', '- Répondre à des questions sur le
+          sujet ou la logique du cours.', '- Rediriger la demande vers le root agent si l’utilisateur demande un autre EXERCICE,
+          UN COURS ou UN COURS APPROFONDI.', 'Tu DOIS :', '- Toujours raisonner à partir du contenu du cours, si tu ne l''as
+          pas, tu utilises le tool ''fetch_context_tool'', il te donnera exactement l''état actuel du cours,', 'n''utilises
+          ce que la première fois pour te donner le contexte, sinon le cours ne change pas donc ne le redéclenche pas.', '-
+          Ne pas trop sortir du sujet du cours.', '- T’adresser à l’utilisateur sur un ton clair, bienveillant et interactif.',
+        '- Si l''utilisateur te parle de choses hors sujet, rappelle-lui que tu es là pour l''aider avec le cours en cours.',
+        'ATTENTION : Si tu as besoin d''écrire, tu réponds systématiquement au format markdown.']
+  copilote_exercice_agent:
+    type: instance
+    models: [gemini_settings.GEMINI_MODEL_2_5_FLASH]
+    tools: [fetch_context_tool]
+    params:
+      name: CopiloteExerciceAgent
+      description: Agent spécialisé dans l'assistance à la réalisation d'exercices pour l'utilisateur.
+      instruction: [Tu es un agent copilote conçu pour assister l’utilisateur dans un **exercice en cours** au sein d’une
+          plateforme de cours interactive., 'Contexte :', '- L’utilisateur est en train de réaliser un exercice interactif
+          comportant plusieurs questions.', '- Ton rôle est d’assister sur **l’exercice en cours**, si l’utilisateur demande
+          un **AUTRE EXERCICE**, un **COURS** ou un **COURS APPROFONDI**, tu dois **appeler ton root agent**.', '- Tu peux
+          être invoqué uniquement à l’intérieur d’un chat d’exercice.', 'Objectif :', 'Aider l’utilisateur à **progresser,
+          réfléchir et comprendre** pendant un exercice.', 'Tu dois être **réactif, clair, bienveillant et pédagogique**.',
+        'Tu peux :', '- Expliquer une question ou un concept lié à l’exercice.', '- Donner des **indices** pour aider à raisonner
+          sans dévoiler directement la réponse (sauf si demandé explicitement).', '- Aider l’utilisateur à **analyser ses
+          erreurs** après correction.', '- Tu disposes également d''une grande base de connaissances qui te permet de chercher
+          dans toute la doc microsoft via les tools que tu as à ta disposition.', 'SI c''est pertinent, utilise les tools
+          MCP pour répondre aux questions de l''utilisateur uniquement si ça concerne les technos ou ce qu''il peut y avoir
+          dans la doc microsoft.', '- Répondre à des questions sur la **logique** ou les **compétences évaluées** par l’exercice.',
+        '- Rediriger la demande vers le **root agent** si l’utilisateur demande un autre exercice, un cours, ou un approfondissement.',
+        'Tu DOIS :', '- Toujours raisonner à partir du **contenu exact de l’exercice**, que tu récupères si besoin grâce au
+          tool `fetch_context_tool`.', '⚠️ N’appelle ce tool **que la première fois**, pour obtenir le contexte complet de
+          l’exercice.', '- Ensuite, conserve ce contexte en mémoire pour tes réponses suivantes.', '- **Ne pas trop sortir
+          du sujet** de l’exercice.', '- T’adresser à l’utilisateur sur un **ton clair, interactif et encourageant**.', '-
+          Si l’utilisateur parle de choses hors sujet, rappelle-lui que tu es là pour l’aider à progresser dans **cet exercice**.',
+        'ATTENTION :', '- Si tu as besoin du contenu de l’exercice, **utilise `fetch_context_tool`** pour le récupérer.',
+        '- Tu réponds systématiquement au **format markdown**.']
+  copilote_new_chapitre_agent:
+    type: instance
+    models: [gemini_settings.GEMINI_MODEL_2_5_FLASH]
+    tools: [fetch_context_deep_course_tool, generate_new_chapter]
+    params:
+      name: CopiloteNewChapitreAgent
+      description: Agent spécialisé dans l'assistance à la réalisation de nouveaux chapitres pour l'utilisateur.
+      instruction: [Tu es un agent copilote conçu pour assister l’utilisateur dans l'ajout d'un chapitre à un cours approfondi
+          contenant déjà plusieurs chapitres., 'Tu dois dans un premier temps appeler le tool ''fetch_context_deep_course_tool''
+          pour récupérer le contenu complet du cours approfondi actuel, tu n''as le droit de l''appeler', 'qu''une seule fois
+          au début pour obtenir le contexte complet du cours, ensuite tu conserves ce contexte en mémoire pour tes réponses
+          suivantes. TU NE RAPPELLES JAMAIS LE TOOL ''fetch_context_deep_course_tool'' une deuxième fois', 'Ton unique objectif
+          est de fournir une description reflettant l''intention de l''utilisateur pour le nouveau chapitre à ajouter, quand
+          tu as suffisamment d''informations, si l''utilisateur te demande de générer un chapitre qui n''a', 'rien à voir
+          avec le cours actuel, rappelle-lui que tu ne peux générer que des chapitres en lien avec le cours actuel et ré-oriente
+          le.', 'De la même manière si il te demande générer un chapitre qui existe déjà dans le cours, rappelle-lui que ce
+          chapitre existe déjà et ré-oriente le.', 'tu appelles le tool ''generate_new_chapter'', tu dois lui fournir un str
+          avec la description précise du chapitre à générer:', 'ATTENTION ! Ne pose pas plus de deux questions de clarification
+          maximum avant d''appeler le tool ''generate_new_chapter''. Si tu as déjà assez d''informations, appelle le tool
+          directement.', 'Une fois que tu as le résultat du tool ''generate_new_chapter'', ne réponds rien, on récupère la
+          variable par un autre moyen.', 'ATTENTION : Si tu as besoin d''écrire, tu réponds systématiquement au format markdown.']
+  course_agent:
+    type: instance
+    models: [gemini_settings.GEMINI_MODEL_2_5_FLASH]
+    tools: [generate_courses]
+    params:
+      name: CourseAgent
+      description: Agent spécialisé dans la génération de cours.
+      instruction: [Tu dois vérifier que la demande de l'utilisateur est clair et complète pour utiliser la fonction `generate_courses`.,
+        'Si ce n''est pas le cas, pose des questions à l''utilisateur pour clarifier la demande.', 'Une fois la demande claire,
+          utilise le tool `generate_courses` pour générer les exercices demandés.', 'Tu dois obtenir les informations suivantes:',
+        '- description (le sujet plus ou moins précis du cours à générer)', '- difficulty (le niveau de difficulté des cours,
+          par exemple "college 4e", "lycée terminale", "débutant", "intermédiaire", "avancé", etc.)', '- level_detail (le
+          niveau de détail des cours, avec comme options : "flash", "standard", "detailed")', 'Voici le schéma pydantic de
+          CourseSynthesis que tu dois respecter pour appeler le tool `generate_courses`:', 'class CourseSynthesis(BaseModel):',
+        'description: str = Field(', '..., description="Description détaillée du sujet du cours à générer."', ), 'difficulty:
+          str = Field(..., description="Niveau de difficulté du cours.")', 'level_detail: Literal["flash", "standard", "detailed"]
+          = Field(', '"standard", description="Niveau de détail du cours."', ), 'À chaque fois que tu demande des clarifications,
+          demande toutes les informations manquantes en une seule fois de manière fluide et naturelle.', 'Ne fait pas de récapitulatif
+          avant d''appeler le tool, dès que tu as toutes les informations, appelle le tool DIRECTEMENT.', 'Appelle le tool
+          uniquement lorsque tu as toutes les informations nécessaires (description, difficulty, level_detail).', 'Une fois
+          que tu as le résultat du tool, ne réponds rien, on récupère la variable par un autre moyen.', 'ATTENTION : quand
+          tu appelles le tool ''generate_courses'', tu mets systématiquement à True le paramètre ''is_called_by_agent''.',
+        'ATTENTION : Si tu as besoin d''écrire, tu réponds systématiquement au format markdown.']
+      disallow_transfer_to_parent: "True"
+  deepcourse_agent:
+    type: instance
+    models: [gemini_settings.GEMINI_MODEL_2_5_FLASH]
+    tools: [generate_deepcourse]
+    params:
+      name: DeepcourseAgent
+      description: Agent spécialisé dans la génération de deepcourses.
+      instruction: [AGENT GÉNÉRATEUR DE DEEPCOURSES, OBJECTIF PRINCIPAL, Tu es un expert en conception pédagogique spécialisé
+          dans la génération de cours, approfondis (deepcourses) de très haute qualité. Une fois que l'utilisateur a, 'clarifié
+          sa demande, tu utilises le tool `generate_deepcourse` pour créer un', cours structuré et cohérent., RÈGLES CRITIQUES,
+        1. Chaque chapitre DOIT être unique - pas de répétition conceptuelle inutile, 2. Maximum 3 questions de clarification
+          au total, '3. Concentre-toi UNIQUEMENT sur les informations essentielles:', • Nombre de chapitres souhaités, '•
+          Niveau de difficulté global (introductory / intermediate / advanced / Master 2, etc.)', • Domaine/sujet principal,
+        4. Pas de résumé avant d'appeler le tool - action DIRECTE, '5. Une fois la réponse du tool reçue, NE RÉPONDS RIEN',
+        STRUCTURE DE DONNÉES À GÉNÉRER, 'Le tool `generate_deepcourse` attend cet objet Pydantic:', '{', '"title": "Titre
+          du deepcourse (str)",', '"synthesis_chapters": [', '{', '"chapter_title": "Titre du chapitre",', '"chapter_description":
+          "Description précise du plan du chapitre (max 1000 chars)",', '"synthesis_exercise": {', '"title": "Titre des exercices",',
+        '"description": "Description des exercices pratiques",', '"difficulty": "Niveau (ex: intermediate, advanced)",', '"number_of_exercises":
+          5,', '"exercise_type": "both"  // "qcm" | "open" | "both"', '},', '"synthesis_course": {', '"description": "Description
+          détaillée du contenu du cours",', '"difficulty": "Niveau (doit correspondre au chapitre)",', '"level_detail": "detailed"  //
+          "flash" | "standard" | "detailed"', '},', '"synthesis_evaluation": {', '"title": "Évaluation - Chapitre X",', '"description":
+          "Évaluation des acquis du chapitre",', '"difficulty": "Même niveau que le cours",', '"number_of_exercises": 10,  //
+          TOUJOURS 10', '"exercise_type": "both"  // TOUJOURS "both" = 5 QCM + 5 questions ouvertes', '}', '}', ']', '}',
+        'CONTRAINTES IMPORTANTES:', '• Min 1 chapitre, Max 16 chapitres par deepcourse', '• Sauf si demandé explicitement,
+          évite de faire plus de 6 chapitres', '• Exercices d''application (synthesis_exercise): 3-8 exercices, type flexible',
+        '• Évaluations (synthesis_evaluation): TOUJOURS 10 exercices, TOUJOURS "both"', WORKFLOW EN 3 ÉTAPES, 'ÉTAPE 1: PROPOSITION
+          DE PLAN', '• Dès que tu comprends le sujet du deepcourse, propose une structure complète', (titre + liste de chapitres
+          avec descriptions courtes), • Attends le retour de l'utilisateur pour ajustements (ajouter/supprimer/modifier),
+        'ÉTAPE 2: VALIDATION ET FINALISATION', '• Une fois le plan VALIDÉ par l''utilisateur (réponses comme "c''est parfait",
+          "ok", "je valide", etc.),', TU DOIS IMMÉDIATEMENT appeler le tool `generate_deepcourse`, '• AVANT d''appeler le
+          tool, tu DOIS avoir en mémoire le plan que tu as proposé précédemment', (récupère-le de l'historique de conversation),
+        '• Décide SEUL les paramètres finaux:', '- Le nombre d''exercices pour chaque chapitre (3-8)', '- Le type d''exercice
+          (qcm / open / both selon la nature du contenu)', '- La difficulté de chaque composante (doit être cohérente dans
+          le chapitre)', '- La difficulté GLOBALE correspond au contexte utilisateur (ex: "Master 2 de Data & IA")', '• Niveau
+          de détail par défaut: TOUJOURS "detailed" sauf indication contraire', '• Les évaluations: TOUJOURS 10 exercices,
+          TOUJOURS "both" (5 QCM + 5 ouvertes)', 'SIGNAL D''ACTIVATION ÉTAPE 2:', 'Si l''utilisateur répond avec l''un de
+          ces mots clés → APPELLE LE TOOL MAINTENANT:', • "c'est parfait", • "ok", • "je valide", • "oui", • "c'est bon",
+        • "génère", • "vas-y", • Ou tout autre indication positive/validation, 'INSTRUCTIONS POUR ÉTAPE 2 - TRÈS IMPORTANT:',
+        'Quand tu détectes une validation (mots clés ci-dessus):', 1. RÉCUPÈRE LE PLAN que tu as proposé dans ton dernier
+          message, (Consulte l'historique de conversation - c'est ta réponse précédente), 2. TRANSFORME ce plan en objet `DeepCourseSynthesis`
+          complet avec tous les paramètres, 3. APPELLE le tool `generate_deepcourse` avec le payload complet, 4. ATTENDS la
+          fin du tool - NE RÉPONDS RIEN APRÈS, 'NE FAIS PAS:', '- De récapitulatif', '- De questions supplémentaires', '-
+          De confirmation "Je vais générer..."', '- Attendre une nouvelle réponse', '- Hésiter ou demander confirmation',
+        'FAIS:', '- Appelle le tool DIRECTEMENT', '- UNE SEULE FOIS par message', '- Avec TOUS les chapitres que tu as proposés',
+        'ÉTAPE 3: APPEL DU TOOL', • Appelle `generate_deepcourse` IMMÉDIATEMENT avec l'objet complet, '• PAS de récapitulatif,
+          PAS de révision - action directe', '• Une fois la réponse reçue: SILENCE TOTAL ✓', CONSEILS DE CONCEPTION PÉDAGOGIQUE,
+        '• Progression logique: Du simple au complexe', • Chaque chapitre construit sur les acquis précédents, '• Évite les
+          redondances: Si un concept est abordé au chapitre 2, ne le répète pas', au chapitre 3 (sauf principes fondamentaux
+          essentiels), '• Cohérence des difficultés: La difficulté doit augmenter progressivement', '• Titres explicites:
+          Chaque chapitre doit avoir un titre clair et précis', FORMAT DE RÉPONSE, 'Réponses avant le plan: Format markdown
+          naturel et fluide', 'Plan proposé: Numéroté, hiérarchisé, clair', Jamais de JSON/code brut dans les étapes 1-2,
+        'À l''étape 3: Appel direct du tool avec objet structuré', EXEMPLE D'EXÉCUTION, 'Utilisateur: "Génère un cours sur
+          l''IA en entreprise"', 'Ton réponse:', ─────────, 'Voici un plan proposé en 8 chapitres pour couvrir l''IA en entreprise:',
+        1. **Introduction à l'IA et applications métier**, '2. **Machine Learning vs Deep Learning: Fondamentaux**', '3. [...]',
+        'Qu''en penses-tu? Veux-tu ajouter/retirer/modifier?', 'Utilisateur: "C''est parfait!"', 'Ton action:', ─────────,
+        → Appelle generate_deepcourse avec le payload complet (NO QUESTIONS)]
+  exercise_agent:
+    type: instance
+    models: [gemini_settings.GEMINI_MODEL_2_5_FLASH]
+    tools: [generate_exercises]
+    params:
+      name: ExerciseAgent
+      description: Agent spécialisé dans la génération d'exercices.
+      instruction: [Tu dois vérifier que la demande de l'utilisateur est clair et complète pour utiliser appeler le tool `generate_exercises`.,
+        'Si ce n''est pas le cas, pose des questions à l''utilisateur pour clarifier la demande.', 'Une fois la demande claire,
+          utilise le tool `generate_exercises` pour générer les exercices demandés.', 'Si l''utilisateur ne précise pas le
+          type d''exercice, on choisit "both" par défaut (ne lui demande pas de précision sur ce point).', 'Tu dois obtenir
+          les informations suivantes:', '- description (le sujet plus ou moins précis des exercices à générer)', '- difficulty
+          (le niveau de difficulté des exercices, par exemple "college 4e", "lycée terminale", "débutant", "intermédiaire",
+          "avancé", etc.) si l''AgentRoot ne te l''a pas déjà fourni', '- number_of_exercises (le nombre d''exercices à générer)',
+        '- title (le titre global des exercices à générer, c''est toi qui le génère, ne le demande pas à l''utilisateur )',
+        'Voici le schéma pydantic de ExerciseSynthesis que tu dois respecter pour appeler le tool `generate_exercises`:',
+        'class ExerciseSynthesis(BaseModel):', 'description: str = Field(', '..., description="Description détaillé du sujet
+          des exercices à générer."', ), 'title: str = Field(', '..., description="Titre global du sujet des exercices à générer."',
+        ), 'difficulty: str = Field(', '..., description="Niveau de difficulté de l''exercice"', ), 'number_of_exercises:
+          Annotated[int, Field(ge=1, le=20)] = Field(', '..., description="Nombre d''exercices à générer (entre 1 et 20)."',
+        ), 'exercise_type: Literal["qcm", "open", "both"] = Field(', '..., description="Type d''exercice à générer : qcm /
+          open / both"', ), 'À chaque fois que tu demande des clarifications, demande toutes les informations manquantes en
+          une seule fois de manière fluide et naturelle.', 'Ne fait pas de récapitulatif avant d''appeler le tool, dès que
+          tu as toutes les informations, appelle le tool `generate_exercises` DIRECTEMENT.', 'Une fois que tu as le résultat
+          du tool, ne réponds rien, on récupère la variable par un autre moyen.', 'ATTENTION : quand tu appelles le tool ''generate_exercises'',
+          tu mets systématiquement à True le paramètre ''is_called_by_agent''.', 'ATTENTION : Si tu as besoin d''écrire, tu
+          réponds systématiquement au format markdown.']
+      disallow_transfer_to_parent: "True"
+  root_agent:
+    type: instance
+    models: [gemini_settings.GEMINI_MODEL_2_5_FLASH]
+    params:
+      name: RootAgent
+      instruction: [Tu es l'agent principal (root_agent) chargé d'orchestrer les interactions entre l'utilisateur et les sous-agents
+          spécialisés., Tu dois rediriger les requêtes des utilisateurs vers les sous-agents appropriés en fonction de la
+          nature de la demande., N'oublie pas de d'envoyer aux sous agents les informations contextuelles nécessaires pour
+          qu'ils puissent répondre efficacement., 'Tu dois redonner tout le contexte supplémentaire pour les agents afin qu''ils
+          puissent répondre au mieux à la demande de l''utilisateur:', '- Si l''utilisateur s''appelle [userFullName], tu
+          dois le préciser aux sub_agents.', '- Si l''utilisateur a un niveau d''étude [userStudy], tu dois le préciser aux
+          sub_agents car ce sera le niveau de difficulté sauf contre-indication.', Tu fais partie d'une application nommée
+          Pixia qui a pour but d'aider les utilisateurs à apprendre de nouvelles compétences via des cours et des exercices
+          interactifs générés par IA., 'Tu vas donc devoir traiter toutes les demandes utilisateurs selon les règles suivantes
+          :', '- Si l''utilisateur te demande de générer un exercice, tu rediriges vers le sub_agent ExerciseAgent.', '- Si
+          l''utilisateur te demande de générer un cours, tu rediriges vers le sub_agent CourseAgent.', '- Si l''utilisateur
+          te demande de générer un deepcourse (cours très détaillé avec beaucoup d''exemples et d''illustrations), tu rediriges
+          vers le sub_agent DeepcourseAgent.', '- Si l''utilisateur te demande de générer un cours un peu approfondi ou sur
+          un sujet dont tu sens qu''il nécessiterait plus de détails, tu proposes systématiquement à l''utilisateur', de faire
+          un deepcourse et si il dit oui tu rediriges vers le sub_agent DeepcourseAgent., '- IMPORTANT: Si tu viens de proposer
+          un plan (avec chapitres et descriptions détaillées) et que l''utilisateur répond par une approbation (ex: "c''est
+          parfait", "oui", "ok", "c''est bon", "vas-y", etc.),', tu DOIS interpréter cela comme une validation du plan et
+          tu DOIS immédiatement rediriger vers le sub_agent DeepcourseAgent pour générer le contenu avec ce plan approuvé.,
+        '- Si l''utilisateur fait une requête d''ordre générale, tu lui réponds normalement, poliment et si ça s''éternise
+          tu peux lui proposer de l''aide via un cours ou un exercice.', 'ATTENTION : Si tu as besoin d''écrire, tu réponds
+          systématiquement au format markdown.']
+      sub_agents: [exercise_agent, copilote_exercice_agent, copilote_cours_agent, copilote_new_chapitre_agent, course_agent,
+        deepcourse_agent]
+
+models:
+  gemini_settings.GEMINI_MODEL_2_5_FLASH:
+    type: literal
+    agents: [exercise_agent, copilote_exercice_agent, copilote_cours_agent, copilote_new_chapitre_agent, root_agent, deepcourse_agent,
+      course_agent]
+
+tools:
+  fetch_context_deep_course_tool:
+    type: function
+    agents: [copilote_new_chapitre_agent]
+    params:
+      description: "Récupère le contenu complet du document actuel (exercise ou cours) \npour répondre aux questions de l'utilisateur.\
+        \ Utilise cet outil quand \ntu as besoin de connaître le contenu exact du document pour aider l'utilisateur.\n\nReturns:\n\
+        \    Le contenu du document en format JSON string ou un message d'erreur"
+  fetch_context_tool:
+    type: function
+    agents: [copilote_exercice_agent, copilote_cours_agent]
+    params:
+      description: "Récupère le contenu complet du document actuel (exercise ou cours) \npour répondre aux questions de l'utilisateur.\
+        \ Utilise cet outil quand \ntu as besoin de connaître le contenu exact du document pour aider l'utilisateur.\n\nReturns:\n\
+        \    Le contenu du document en format JSON string ou un message d'erreur"
+  generate_courses:
+    type: function
+    agents: [course_agent]
+    params:
+      description: |-
+        Génère un cours complet.
+
+        Processus:
+        1. Validation du CourseSynthesis (description, difficulty, level_detail)
+        2. Appel du planner pour générer la structure du cours (CoursePlan)
+        3. Génération PARALLÈLE de toutes les parties avec Quad LLM:
+           - LLM #1: Contenu markdown + sélection type diagramme (4 types)
+           - LLM #2 (spécialisé): Code diagramme selon le type (max 3 retries)
+           - Kroki: Conversion en PNG base64
+        4. Retour du CourseOutput avec contenu markdown + diagrammes
+
+        Args:
+            is_called_by_agent: Si appelé par un agent (affecte le format de retour)
+            course_synthesis: CourseSynthesis avec description, difficulty, level_detail
+
+        Returns:
+            CourseOutput ou GenerativeToolOutput si appelé par un agent.
+  generate_deepcourse:
+    type: function
+    agents: [deepcourse_agent]
+    params:
+      description: |-
+        Génère un deepcourse complet avec tous ses chapitres, exercices et évaluations.
+
+        Args:
+            synthesis: Objet DeepCourseSynthesis contenant:
+                - title: Titre du deepcourse
+                - synthesis_chapters: Liste des chapitres (1-16) avec structure complète
+
+        Returns:
+            GenerativeToolOutput avec agent, completed, redirect_id
+
+        Utilisation:
+            Appelle ce tool une fois que l'utilisateur a validé le plan du deepcourse.
+            Le tool génère en parallèle tous les cours, exercices et évaluations.
+  generate_exercises:
+    type: function
+    agents: [exercise_agent]
+    params:
+      description: |-
+        Génère un exercice à partir d'un ExerciseSynthesis.
+
+        Processus:
+        1. Valider l'ExerciseSynthesis
+        2. Appeler le planificateur d'exercices avec une logique de nouvelle tentative (max 3 tentatives avec un backoff exponentiel)
+        3. Générer tous les exercices en parallèle en utilisant generate_for_topic
+        4. Filtrer et valider les résultats
+        5. Stocker dans la base de données si appelé par l'agent
+        6. Retourner ExerciseOutput avec tous les exercices générés
+
+        Args:
+            is_called_by_agent: Si appelé par un agent (affecte le format de retour)
+            synthesis: ExerciseSynthesis avec titre et paramètres de difficulté
+
+        Returns:
+            ExerciseOutput avec tous les exercices si non appelé par l'agent,
+            GenerativeToolOutput si appelé par l'agent
+  generate_new_chapter:
+    type: function
+    agents: [copilote_new_chapitre_agent]
+    params:
+      description: |-
+        Génère un nouveau chapitre à partir d'une description de synthèse DeepCourse.
+
+        Processus:
+        1. Récupérer les informations existantes sur le deepcourse et les chapitres
+        2. Appeler Gemini pour générer ChapterSynthesis en fonction de la description de l'utilisateur
+        3. Générer des exercices, un cours et une évaluation en parallèle
+        4. Stocker le chapitre dans la base de données avec gestion de session
+        5. Retourner GenerativeToolOutput avec les informations du chapitre
+
+        Args:
+            description_user: Description de l'utilisateur pour le nouveau chapitre
+
+        Returns:
+            GenerativeToolOutput avec agent, redirect_id, completed
+  MCPToolset:
+    type: mcp
+    agents: [copilote_cours_agent]
+    params:
+      class: MCPToolset
+      mcp_server: MCPToolset
+
+mcp:
+  MCPToolset:
+    type: network
+    url: https://learn.microsoft.com/api/mcp
+    agents: [copilote_cours_agent]
+    params:
+      class: MCPToolset
+      connection_type: StreamableHTTPConnectionParams
+
+teams:
+  root_agent:
+    type: hierarchy
+    agents: [root_agent, exercise_agent, copilote_exercice_agent, copilote_cours_agent, copilote_new_chapitre_agent, course_agent,
+      deepcourse_agent]
+
+imports:
+  agent_correct_plain_question: correct_plain_question.agent_correct_plain_question
+  AGENT_PROMPT_CopiloteCourseAgent_base: copilote_prompt.AGENT_PROMPT_CopiloteCourseAgent_base
+  AGENT_PROMPT_CopiloteExerciceAgent_base: copilote_prompt.AGENT_PROMPT_CopiloteExerciceAgent_base
+  AGENT_PROMPT_CopiloteNewChapitreAgent_base: copilote_prompt.AGENT_PROMPT_CopiloteNewChapitreAgent_base
+  AGENT_PROMPT_CourseAgent: src.prompts.AGENT_PROMPT_CourseAgent
+  AGENT_PROMPT_DeepcourseAgent: src.prompts.AGENT_PROMPT_DeepcourseAgent
+  AGENT_PROMPT_ExerciseAgent: exercises_prompt.AGENT_PROMPT_ExerciseAgent
+  AGENT_PROMPT_ORCHESTRATOR: orchestrator_prompt.AGENT_PROMPT_ORCHESTRATOR
+  AgentAnswer: chat.AgentAnswer
+  Annotated: typing.Annotated
+  Any: typing.Any
+  APIRouter: fastapi.APIRouter
+  app_settings: src.config.app_settings
+  async_sessionmaker: sqlalchemy.ext.asyncio.async_sessionmaker
+  asynccontextmanager: contextlib.asynccontextmanager
+  asyncio: asyncio
+  asyncpg: asyncpg
+  AsyncSession: sqlalchemy.ext.asyncio.AsyncSession
+  Base: src.bdd.schema_sql.Base
+  base64: base64
+  BaseModel: pydantic.BaseModel
+  BaseSettings: pydantic_settings.BaseSettings
+  BaseTool: google.adk.tools.base_tool.BaseTool
+  Boolean: sqlalchemy.Boolean
+  BytesIO: io.BytesIO
+  cast: typing.cast
+  CHANGE_SETTINGS: src.bdd.query.CHANGE_SETTINGS
+  changesettings_router: changesettings.router
+  Chapter: src.models.Chapter
+  ChapterSynthesis: src.models.ChapterSynthesis
+  chat_router: chat.router
+  ChatResponse: src.dto.ChatResponse
+  CHECK_TABLES: src.bdd.query.CHECK_TABLES
+  ClassifiedPlan: exercise_models.ClassifiedPlan
+  CLEAR_ALL_TABLES: src.bdd.query.CLEAR_ALL_TABLES
+  Column: sqlalchemy.Column
+  ContextVar: contextvars.ContextVar
+  copilote_cours_agent: src.agents.sub_agents.copilote_cours_agent
+  copilote_exercice_agent: src.agents.sub_agents.copilote_exercice_agent
+  copilote_new_chapitre_agent: src.agents.sub_agents.copilote_new_chapitre_agent
+  CORRECT_PLAIN_QUESTION: src.bdd.query.CORRECT_PLAIN_QUESTION
+  correctallquestions_router: correctallquestions.router
+  CorrectMultipleQuestionsRequest: correctplainquestion.CorrectMultipleQuestionsRequest
+  correctplainquestion_router: correctplainquestion.router
+  CorrectPlainQuestionResponse: correctplainquestion.CorrectPlainQuestionResponse
+  CorrectQuestionRequest: correctplainquestion.CorrectQuestionRequest
+  course_agent: src.agents.sub_agents.course_agent
+  CourseOutput: src.models.CourseOutput
+  CoursePlan: cours_models.CoursePlan
+  CourseSynthesis: src.models.CourseSynthesis
+  create_async_engine: sqlalchemy.ext.asyncio.create_async_engine
+  CREATE_CHAPTER: src.bdd.query.CREATE_CHAPTER
+  create_db_pool: get_db_url.create_db_pool
+  CREATE_DEEPCOURSE: src.bdd.query.CREATE_DEEPCOURSE
+  database_settings: src.config.database_settings
+  DatabaseSessionService: google.adk.sessions.database_session_service.DatabaseSessionService
+  datetime: datetime.datetime
+  DBManager: src.bdd.DBManager
+  declarative_base: sqlalchemy.orm.declarative_base
+  deepcourse_agent: src.agents.sub_agents.deepcourse_agent
+  DeepCourseOutput: src.models.DeepCourseOutput
+  DeepCourseSynthesis: src.models.DeepCourseSynthesis
+  DELETE_CHAPTER: src.bdd.query.DELETE_CHAPTER
+  DELETE_DEEPCOURSE: src.bdd.query.DELETE_DEEPCOURSE
+  DELETE_DOCUMENTS: src.bdd.query.DELETE_DOCUMENTS
+  DELETE_DOCUMENTS_BY_CHAPTER: src.bdd.query.DELETE_DOCUMENTS_BY_CHAPTER
+  deletechapter_router: deletechapter.router
+  DeleteChapterRequest: deletechapter.DeleteChapterRequest
+  deletechat_router: deletechat.router
+  DeleteChatRequest: deletechat.DeleteChatRequest
+  deletedeepcourse_router: deletedeepcourse.router
+  Dict: typing.Dict
+  DisplaySessionsMain: fetchallchats.DisplaySessionsMain
+  downloadcourse_router: downloadcourse.router
+  DROP_ALL_TABLES: src.bdd.query.DROP_ALL_TABLES
+  Enum: sqlalchemy.Enum
+  enum: enum
+  EventMessage: fetchchat.EventMessage
+  ExercicePlanItem: src.models.ExercicePlanItem
+  exercise_agent: src.agents.sub_agents.exercise_agent
+  ExerciseOutput: src.models.ExerciseOutput
+  ExercisePlan: src.models.ExercisePlan
+  ExerciseSynthesis: src.models.ExerciseSynthesis
+  FETCH_ALL_CHAPTERS: src.bdd.query.FETCH_ALL_CHAPTERS
+  FETCH_ALL_CHATS: src.bdd.query.FETCH_ALL_CHATS
+  FETCH_ALL_DEEPCOURSES: src.bdd.query.FETCH_ALL_DEEPCOURSES
+  FETCH_CHAPTER_DOCUMENTS: src.bdd.query.FETCH_CHAPTER_DOCUMENTS
+  fetch_context_deep_course_tool: src.tools.copilote_tools.fetch_context_deep_course_tool
+  fetch_context_tool: src.tools.copilote_tools.fetch_context_tool
+  fetch_course_router: fetchcourse.router
+  FETCH_DOCUMENT_BY_SESSION: src.bdd.query.FETCH_DOCUMENT_BY_SESSION
+  FETCH_DOCUMENT_CONTENT_BY_ID: src.bdd.query.FETCH_DOCUMENT_CONTENT_BY_ID
+  fetch_exercise_router: fetchexercise.router
+  fetchallchapters_router: fetchallchapters.router
+  fetchallchats_router: fetchallchats.router
+  FetchAllChatsRequest: fetchallchats.FetchAllChatsRequest
+  FetchAllChatsResponse: fetchallchats.FetchAllChatsResponse
+  fetchalldeepcourses_router: fetchalldeepcourses.router
+  fetchchapterdocuments_router: fetchchapterdocuments.router
+  fetchchat_router: fetchchat.router
+  FetchChatRequest: fetchchat.FetchChatRequest
+  FetchChatResponse: fetchchat.FetchChatResponse
+  FetchExerciseResponse: fetchexercise.FetchExerciseResponse
+  Field: pydantic.Field
+  File: fastapi.File
+  final_context_builder: src.utils.final_context_builder
+  ForeignKey: sqlalchemy.ForeignKey
+  Form: fastapi.Form
+  gemini_settings: src.config.gemini_settings
+  genai: google.genai
+  generate_all_schemas: cours_utils_v2.generate_all_schemas
+  generate_complete_course: cours_utils_v2.generate_complete_course
+  generate_course_complete: src.utils.cours_utils_quad_llm.generate_course_complete
+  generate_courses: src.tools.cours_tools.generate_courses
+  generate_courses_quad_llm: src.utils.cours_utils_quad_llm_integration.generate_courses_quad_llm
+  generate_deepcourse: generate_deep_course_tool.generate_deepcourse
+  generate_exercises: generate_exercices_tool.generate_exercises
+  generate_for_topic: src.utils.generate_for_topic
+  generate_new_chapter: generate_new_chapter.generate_new_chapter
+  generate_plain: exercises_utils.generate_plain
+  generate_qcm: exercises_utils.generate_qcm
+  generate_schema_mermaid: cours_utils_v2.generate_schema_mermaid
+  GENERATE_TITLE_PROMPT: utils_prompt.GENERATE_TITLE_PROMPT
+  GenerativeToolOutput: src.models.GenerativeToolOutput
+  get_connection: get_db_url.get_connection
+  get_deep_course_id: src.utils.get_deep_course_id
+  GET_DEEPCOURSE_AND_CHAPTER_FROM_ID: src.bdd.query.GET_DEEPCOURSE_AND_CHAPTER_FROM_ID
+  get_document_id: request_context.get_document_id
+  GET_SESSION_FROM_DOCUMENT: src.bdd.query.GET_SESSION_FROM_DOCUMENT
+  get_session_id: request_context.get_session_id
+  get_user_id: src.utils.get_user_id
+  hashlib: hashlib
+  health_router: health.router
+  HTTPException: fastapi.HTTPException
+  InMemoryArtifactService: google.adk.artifacts.InMemoryArtifactService
+  InMemorySessionService: google.adk.sessions.InMemorySessionService
+  JSON: sqlalchemy.JSON
+  json: json
+  List: typing.List
+  Literal: typing.Literal
+  LlmAgent: google.adk.agents.LlmAgent
+  load_dotenv: dotenv.load_dotenv
+  logging: logging
+  login_router: login.router
+  LOGIN_USER: src.bdd.query.LOGIN_USER
+  LoginRequest: login.LoginRequest
+  LoginResponse: login.LoginResponse
+  MARK_CHAPTER_COMPLETE: src.bdd.query.MARK_CHAPTER_COMPLETE
+  MARK_CHAPTER_UNCOMPLETE: src.bdd.query.MARK_CHAPTER_UNCOMPLETE
+  MARK_IS_CORRECTED_QCM: src.bdd.query.MARK_IS_CORRECTED_QCM
+  markchaptercomplete_router: markchaptercomplete.router
+  MarkChapterRequest: markchapter.MarkChapterRequest
+  MarkChapterResponse: markchapter.MarkChapterResponse
+  markchapteruncomplete_router: markchapteruncomplete.router
+  markcorrectedQCM_router: markcorrectedQCM.router
+  markdown: markdown
+  MarkIsCorrectedQCMRequest: markcorrectedQCM.MarkIsCorrectedQCMRequest
+  MarkIsCorrectedQCMResponse: markcorrectedQCM.MarkIsCorrectedQCMResponse
+  MCPToolset: google.adk.tools.mcp_tool.MCPToolset
+  MermaidValidator: mermaid_validator.MermaidValidator
+  Open: src.models.Open
+  Optional: typing.Optional
+  os: os
+  Part: google.genai.types.Part
+  PartPlanItem: cours_models.PartPlanItem
+  PartSchema: cours_models.PartSchema
+  Path: pathlib.Path
+  pisa: xhtml2pdf.pisa
+  planner_exercises_async: src.utils.planner_exercises_async
+  Pool: asyncpg.Pool
+  QCM: src.models.QCM
+  quote_plus: urllib.parse.quote_plus
+  re: re
+  relationship: sqlalchemy.orm.relationship
+  RENAME_CHAPTER: src.bdd.query.RENAME_CHAPTER
+  renamechapter_router: renamechapter.router
+  RenameChapterRequest: renamechapter.RenameChapterRequest
+  RenameChapterResponse: renamechapter.RenameChapterResponse
+  renamechat_router: renamechat.router
+  RenameChatRequest: renamechat.RenameChatRequest
+  RenameChatResponse: renamechat.RenameChatResponse
+  Response: fastapi.responses.Response
+  root_agent: orchestrateur.root_agent
+  Runner: google.adk.runners.Runner
+  save_course_as_pdf: save_files.save_course_as_pdf
+  set_request_context: src.utils.set_request_context
+  SettingsConfigDict: pydantic_settings.SettingsConfigDict
+  signup_router: signup.router
+  SIGNUP_USER: src.bdd.query.SIGNUP_USER
+  SignupRequest: signup.SignupRequest
+  SignupResponse: signup.SignupResponse
+  SPECIALIZED_PROMPTS: src.prompts.diagram_agents_prompts.SPECIALIZED_PROMPTS
+  STORE_BASIC_DOCUMENT: src.bdd.query.STORE_BASIC_DOCUMENT
+  StreamableHTTPConnectionParams: google.adk.tools.mcp_tool.mcp_session_manager.StreamableHTTPConnectionParams
+  String: sqlalchemy.String
+  StringConstraints: pydantic.StringConstraints
+  subprocess: subprocess
+  sys: sys
+  SYSTEM_PROMPT_CORRECT_PLAIN_QUESTION: utils_prompt.SYSTEM_PROMPT_CORRECT_PLAIN_QUESTION
+  SYSTEM_PROMPT_GENERATE_COMPLETE_COURSE: cours_prompt.SYSTEM_PROMPT_GENERATE_COMPLETE_COURSE
+  SYSTEM_PROMPT_GENERATE_MERMAID_CODE: cours_prompt.SYSTEM_PROMPT_GENERATE_MERMAID_CODE
+  SYSTEM_PROMPT_GENERATE_NEW_CHAPTER: src.prompts.SYSTEM_PROMPT_GENERATE_NEW_CHAPTER
+  SYSTEM_PROMPT_GENERATE_PART: cours_prompt.SYSTEM_PROMPT_GENERATE_PART
+  SYSTEM_PROMPT_OPEN: src.prompts.SYSTEM_PROMPT_OPEN
+  SYSTEM_PROMPT_PLANNER_COURS: cours_prompt.SYSTEM_PROMPT_PLANNER_COURS
+  SYSTEM_PROMPT_PLANNER_EXERCISES: src.prompts.SYSTEM_PROMPT_PLANNER_EXERCISES
+  SYSTEM_PROMPT_QCM: src.prompts.SYSTEM_PROMPT_QCM
+  SYSTEM_PROMPTS: src.prompts.diagram_agents_prompts.SYSTEM_PROMPTS
+  tempfile: tempfile
+  Text: sqlalchemy.Text
+  text: sqlalchemy.text
+  time: time
+  Timer: src.utils.timing.Timer
+  TIMESTAMP: sqlalchemy.TIMESTAMP
+  ToolContext: google.adk.tools.ToolContext
+  Tuple: typing.Tuple
+  types: google.genai.types
+  Union: typing.Union
+  UPDATE_DOCUMENT_CONTENT: src.bdd.query.UPDATE_DOCUMENT_CONTENT
+  UploadFile: fastapi.UploadFile
+  uuid4: uuid.uuid4
+
+functions:
+  __enter__:
+    type: sync
+    module: src.utils.timing
+    args: [self]
+  __exit__:
+    type: sync
+    module: src.utils.timing
+    args: [self]
+  __init__:
+    type: sync
+    module: src.bdd.dbmanager
+    args: [self]
+  _build_html_template:
+    type: sync
+    module: src.utils.save_files
+    args: [markdown_content, add_logo]
+    params:
+      returns: str
+  _check_brackets_balance:
+    type: sync
+    module: src.utils.mermaid_validator
+    args: [code]
+    params:
+      returns: bool
+  _count_nodes:
+    type: sync
+    module: src.utils.mermaid_validator
+    args: [code]
+    params:
+      returns: int
+  _skip_deepcourse_summarization:
+    type: async
+    module: src.agents.sub_agents.deepcourse_agents
+    args: [tool, args, tool_context, tool_response]
+    params:
+      returns: Optional[dict]
+  _truncate_json_explanations:
+    type: sync
+    module: src.utils.exercises_utils
+    args: [json_text, max_length]
+    params:
+      returns: str
+  agent_correct_plain_question:
+    type: async
+    module: src.utils.correct_plain_question
+    args: [answer, question, response]
+    params:
+      returns: bool
+  change_settings:
+    type: async
+    module: src.bdd.dbmanager
+    args: [self, user_id, new_given_name, new_niveau_etude, new_notion_token]
+  chat:
+    type: async
+    module: src.app.api.chat
+    args: [user_id, message, session_id, files, deep_course_id, document_id, message_context]
+  clear_db:
+    type: async
+    module: src.bdd.dbmanager
+    args: [self]
+  clear_request_context:
+    type: sync
+    module: src.utils.request_context
+    params:
+      returns: None
+  clear_tables:
+    type: async
+    module: src.bdd.dbmanager
+    args: [self]
+  correct_plain_question:
+    type: async
+    module: src.bdd.dbmanager
+    args: [self, doc_id, id_question, is_correct, answer]
+  course_output_to_markdown:
+    type: sync
+    module: src.utils.save_files
+    args: [course]
+    params:
+      returns: str
+  create_db:
+    type: async
+    module: src.bdd.dbmanager
+    args: [self]
+  create_db_pool:
+    type: async
+    module: src.utils.get_db_url
+    args: [min_size, max_size]
+    params:
+      returns: Pool
+  delete_chapter:
+    type: async
+    module: src.bdd.dbmanager
+    args: [self, chapter_id]
+  delete_deepcourse:
+    type: async
+    module: src.bdd.dbmanager
+    args: [self, user_id, deepcourse_id]
+  delete_document:
+    type: async
+    module: src.bdd.dbmanager
+    args: [self, document_id]
+  delete_document_for_chapter:
+    type: async
+    module: src.bdd.dbmanager
+    args: [self, chapter_id]
+  dsn:
+    type: sync
+    module: src.config
+    args: [self]
+    params:
+      returns: str
+  fetch_all_chapters:
+    type: async
+    module: src.bdd.dbmanager
+    args: [self, deepcourse_id]
+  fetch_all_chats:
+    type: async
+    module: src.bdd.dbmanager
+    args: [self, user_id]
+  fetch_all_deepcourses:
+    type: async
+    module: src.bdd.dbmanager
+    args: [self, user_id]
+  fetch_chapter_documents:
+    type: async
+    module: src.bdd.dbmanager
+    args: [self, chapter_id]
+  fetch_context_deep_course_tool:
+    type: async
+    module: src.tools.copilote_tools.fetch_context_deep_course_tool
+    params:
+      returns: str
+  fetch_context_tool:
+    type: async
+    module: src.tools.copilote_tools.fetch_context_tool
+    params:
+      returns: str
+  final_context_builder:
+    type: async
+    module: src.utils.context_builder
+    args: [message_context]
+    params:
+      returns: str
+  generate_all_schemas:
+    type: async
+    module: src.utils.cours_utils_v2
+    args: [course_output]
+    params:
+      returns: CourseOutput
+  generate_complete_course:
+    type: sync
+    module: src.utils.cours_utils_v2
+    args: [synthesis]
+    params:
+      returns: Optional[CourseOutput]
+  generate_course_complete:
+    type: async
+    module: src.utils.cours_utils_quad_llm
+    args: [synthesis]
+    params:
+      returns: Optional[CourseOutput]
+  generate_course_pdf_response:
+    type: sync
+    module: src.utils.save_files
+    args: [course]
+    params:
+      returns: Response
+  generate_course_with_diagram_types_async:
+    type: async
+    module: src.utils.cours_utils_quad_llm
+    args: [synthesis]
+    params:
+      returns: Optional[Union]
+  generate_courses:
+    type: async
+    module: src.tools.cours_tools.generate_cours_tool
+    args: [is_called_by_agent, course_synthesis]
+    params:
+      returns: Union
+  generate_courses_quad_llm:
+    type: async
+    module: src.utils.cours_utils_quad_llm_integration
+    args: [course_synthesis, planner_func]
+    params:
+      returns: CourseOutput
+  generate_deepcourse:
+    type: async
+    module: src.tools.deepcourse_tools.generate_deep_course_tool
+    args: [synthesis]
+    params:
+      returns: GenerativeToolOutput
+  generate_diagram_code:
+    type: async
+    module: src.utils.cours_utils_quad_llm
+    args: [diagram_type, content]
+    params:
+      returns: Optional[str]
+  generate_exercises:
+    type: async
+    module: src.tools.exercises_tools.generate_exercices_tool
+    args: [is_called_by_agent, synthesis]
+    params:
+      returns: Union
+  generate_for_topic:
+    type: async
+    module: src.utils.exercises_utils
+    args: [item, difficulty]
+    params:
+      returns: Union
+  generate_mermaid_schema_description:
+    type: sync
+    module: src.utils.cours_utils_v2
+    args: [course_part]
+    params:
+      returns: Optional[Dict]
+  generate_new_chapter:
+    type: async
+    module: src.tools.deepcourse_tools.generate_new_chapter
+    args: [description_user]
+    params:
+      returns: GenerativeToolOutput
+  generate_part:
+    type: sync
+    module: src.utils.cours_utils_v2
+    args: [title, content, difficulty]
+    params:
+      returns: Dict
+  generate_plain:
+    type: async
+    module: src.utils.exercises_utils
+    args: [prompt, difficulty]
+    params:
+      returns: Union
+  generate_qcm:
+    type: async
+    module: src.utils.exercises_utils
+    args: [prompt, difficulty]
+    params:
+      returns: Union
+  generate_schema_mermaid:
+    type: sync
+    module: src.utils.cours_utils_v2
+    args: [mermaid_code]
+    params:
+      returns: Optional[str]
+  generate_schema_png:
+    type: sync
+    module: src.utils.cours_utils_quad_llm
+    args: [diagram_code, diagram_type]
+    params:
+      returns: Optional[str]
+  get_connection:
+    type: async
+    module: src.utils.get_db_url
+    args: [pool]
+  get_db:
+    type: async
+    module: src.bdd.dbmanager
+    args: [self]
+  get_deep_course_id:
+    type: sync
+    module: src.utils.request_context
+    params:
+      returns: Optional[str]
+  get_deepcourse_and_chapter_with_id:
+    type: async
+    module: src.bdd.dbmanager
+    args: [self, deepcourse_id]
+  get_document_by_id:
+    type: async
+    module: src.bdd.dbmanager
+    args: [self, session_id]
+  get_document_by_session_id:
+    type: async
+    module: src.bdd.dbmanager
+    args: [self, session_id]
+  get_document_id:
+    type: sync
+    module: src.utils.request_context
+    params:
+      returns: Optional[str]
+  get_elapsed:
+    type: sync
+    module: src.utils.timing
+    args: [self]
+    params:
+      returns: float
+  get_session_from_document:
+    type: async
+    module: src.bdd.dbmanager
+    args: [self, chapter_id]
+  get_session_id:
+    type: sync
+    module: src.utils.request_context
+    params:
+      returns: Optional[str]
+  get_user_id:
+    type: sync
+    module: src.utils.request_context
+    params:
+      returns: Optional[str]
+  GOOGLE_CLIENT_SECRET:
+    type: sync
+    module: src.config
+    args: [self]
+    params:
+      returns: str
+  login_user:
+    type: async
+    module: src.bdd.dbmanager
+    args: [self, email]
+  main:
+    type: async
+    module: src.bdd.dbmanager
+  mark_chapter_complete:
+    type: async
+    module: src.bdd.dbmanager
+    args: [self, chapter_id]
+  mark_chapter_uncomplete:
+    type: async
+    module: src.bdd.dbmanager
+    args: [self, chapter_id]
+  mark_is_corrected_qcm:
+    type: async
+    module: src.bdd.dbmanager
+    args: [self, doc_id, question_id]
+  markdown_to_pdf:
+    type: sync
+    module: src.utils.save_files
+    args: [markdown_content, output_pdf_path, add_logo]
+    params:
+      returns: str
+  planner_exercises_async:
+    type: async
+    module: src.utils.exercises_utils
+    args: [synthesis]
+    params:
+      returns: Union
+  process_course_part:
+    type: async
+    module: src.utils.cours_utils_quad_llm
+    args: [part_data, index]
+    params:
+      returns: Optional[Part]
+  rename_chapter:
+    type: async
+    module: src.bdd.dbmanager
+    args: [self, chapter_id, title]
+  sanitize:
+    type: sync
+    module: src.utils.mermaid_validator
+    args: [mermaid_code]
+    params:
+      returns: str
+  sanitize_filename:
+    type: sync
+    module: src.utils.save_files
+    args: [filename]
+    params:
+      returns: str
+  save_course_as_pdf:
+    type: sync
+    module: src.utils.save_files
+    args: [course, output_pdf_path, keep_markdown]
+    params:
+      returns: tuple
+  save_markdown_to_file:
+    type: sync
+    module: src.utils.save_files
+    args: [markdown_content, output_path]
+    params:
+      returns: str
+  set_deep_course_id:
+    type: sync
+    module: src.utils.request_context
+    args: [deep_course_id]
+    params:
+      returns: None
+  set_document_id:
+    type: sync
+    module: src.utils.request_context
+    args: [document_id]
+    params:
+      returns: None
+  set_request_context:
+    type: sync
+    module: src.utils.request_context
+    args: [document_id, session_id, user_id, deep_course_id]
+    params:
+      returns: None
+  set_session_id:
+    type: sync
+    module: src.utils.request_context
+    args: [session_id]
+    params:
+      returns: None
+  set_user_id:
+    type: sync
+    module: src.utils.request_context
+    args: [user_id]
+    params:
+      returns: None
+  signup_user:
+    type: async
+    module: src.bdd.dbmanager
+    args: [self, google_sub, email, name, notion_token, study]
+  store_basic_document:
+    type: async
+    module: src.bdd.dbmanager
+    args: [self, content, session_id, sub, chapter_id]
+  store_chapter:
+    type: async
+    module: src.bdd.dbmanager
+    args: [self, title, user_id, deepcourse_id, chapter_id, session_exercise, session_course, session_evaluation, exercice,
+      course, evaluation]
+  store_deepcourse:
+    type: async
+    module: src.bdd.dbmanager
+    args: [self, user_id, content, dict_session]
+  test_db:
+    type: async
+    module: src.bdd.dbmanager
+    args: [self]
+  truncate_match:
+    type: sync
+    module: src.utils.exercises_utils
+    args: [match]
+  update_document:
+    type: async
+    module: src.bdd.dbmanager
+    args: [self, document_id, new_content]
+  validate:
+    type: sync
+    module: src.utils.mermaid_validator
+    args: [mermaid_code]
+    params:
+      returns: Tuple
+
+files:
+  .md:
+    type: literal
+    actions: [write]
+    params:
+      caller: [tempfile.mkstemp]
+  .pdf:
+    type: literal
+    actions: [write]
+    params:
+      caller: [tempfile.mkstemp]
+  logo.png:
+    type: literal
+    actions: [read]
+    params:
+      path: [ASSETS_DIR]
+  LOGO_PATH:
+    type: variable
+    actions: [read]
+    params:
+      caller: [open]
+      alias: [img_file]
+  md_path:
+    type: variable
+    actions: [delete]
+    params:
+      caller: [os.unlink]
+  out_path:
+    type: variable
+    actions: [write, read, delete]
+    params:
+      caller: [open, os.remove]
+      alias: [f]
+  output_path:
+    type: variable
+    actions: [write]
+    params:
+      caller: [open]
+      alias: [f]
+  output_pdf_path:
+    type: variable
+    actions: [write]
+    params:
+      caller: [open]
+      alias: [pdf_file]
+
+networks:
+  learn.microsoft.com:
+    type: api
+    actions: [connect]
+    urls: [/api/mcp]
+    protocols: [https]
+    ports: ["443"]
+    params:
+      caller: [McpToolset]
+      links: [MCPToolset]
